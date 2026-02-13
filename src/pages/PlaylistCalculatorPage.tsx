@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { usePageMeta } from '../utils/usePageMeta';
 import { extractPlaylistId } from '../utils/urlParser';
 import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
-import { formatDuration, calculateSpeedDurations } from '../utils/duration';
-import type { VideoInfo, SpeedDuration } from '../types/youtube';
-
-const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3] as const;
+import { formatDuration } from '../utils/duration';
+import type { VideoInfo } from '../types/youtube';
 
 export default function PlaylistCalculatorPage() {
   usePageMeta(
@@ -18,7 +16,6 @@ export default function PlaylistCalculatorPage() {
   const [error, setError] = useState('');
   const [videos, setVideos] = useState<VideoInfo[]>([]);
   const [totalSeconds, setTotalSeconds] = useState(0);
-  const [speeds, setSpeeds] = useState<SpeedDuration[]>([]);
   const [selectedSpeed, setSelectedSpeed] = useState(1);
   const [unavailableCount, setUnavailableCount] = useState(0);
   const [showVideos, setShowVideos] = useState(false);
@@ -29,7 +26,6 @@ export default function PlaylistCalculatorPage() {
     setError('');
     setVideos([]);
     setTotalSeconds(0);
-    setSpeeds([]);
     setSelectedSpeed(1);
     setUnavailableCount(0);
     setShowVideos(false);
@@ -56,7 +52,6 @@ export default function PlaylistCalculatorPage() {
 
       setVideos(details);
       setTotalSeconds(total);
-      setSpeeds(calculateSpeedDurations(total));
     } catch (err) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
     } finally {
@@ -68,8 +63,7 @@ export default function PlaylistCalculatorPage() {
     const lines = [
       `총 영상: ${videos.length}개`,
       `총 재생시간: ${formatDuration(totalSeconds)}`,
-      '',
-      ...speeds.map((s) => `${s.label} 배속: ${s.formatted}`),
+      `${selectedSpeed}x 배속: ${formatDuration(Math.round(totalSeconds / selectedSpeed))}`,
     ].join('\n');
 
     await navigator.clipboard.writeText(lines);
@@ -77,9 +71,11 @@ export default function PlaylistCalculatorPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const currentSpeed = speeds.find((s) => s.speed === selectedSpeed);
+  const adjustedSeconds = Math.round(totalSeconds / selectedSpeed);
   const avgSeconds =
-    videos.length > 0 ? Math.round(totalSeconds / videos.length) : 0;
+    videos.length > 0
+      ? Math.round(totalSeconds / videos.length / selectedSpeed)
+      : 0;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -131,25 +127,31 @@ export default function PlaylistCalculatorPage() {
 
       {totalSeconds > 0 && (
         <div className="mt-8 space-y-6">
-          {/* 배속 선택 탭 */}
-          <div>
-            <h2 className="text-base font-semibold text-slate-900 mb-3">
-              재생 속도
-            </h2>
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 p-1.5 bg-slate-100 rounded-xl">
-              {SPEED_OPTIONS.map((speed) => (
-                <button
-                  key={speed}
-                  onClick={() => setSelectedSpeed(speed)}
-                  className={`py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    selectedSpeed === speed
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {speed === 1 ? '1배속' : `${speed}x`}
-                </button>
-              ))}
+          {/* 배속 슬라이더 */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-slate-900">
+                재생 속도
+              </h2>
+              <span className="text-2xl font-bold text-slate-900">
+                {selectedSpeed}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.25"
+              max="4"
+              step="0.25"
+              value={selectedSpeed}
+              onChange={(e) => setSelectedSpeed(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-red-600"
+            />
+            <div className="flex justify-between text-xs text-slate-400 mt-2">
+              <span>0.25x</span>
+              <span>1x</span>
+              <span>2x</span>
+              <span>3x</span>
+              <span>4x</span>
             </div>
           </div>
 
@@ -184,24 +186,22 @@ export default function PlaylistCalculatorPage() {
                 <p className="text-xs font-medium text-blue-400 mb-1">
                   시청 시간
                   {selectedSpeed !== 1 && (
-                    <span className="ml-1">({selectedSpeed}x 기준)</span>
+                    <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {currentSpeed
-                    ? currentSpeed.formatted
-                    : formatDuration(totalSeconds)}
+                  {formatDuration(adjustedSeconds)}
                 </p>
               </div>
               <div className="rounded-xl bg-violet-50 p-5 text-center">
                 <p className="text-xs font-medium text-violet-400 mb-1">
                   평균 길이
                   {selectedSpeed !== 1 && (
-                    <span className="ml-1">({selectedSpeed}x 기준)</span>
+                    <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-violet-600">
-                  {formatDuration(Math.round(avgSeconds / selectedSpeed))}
+                  {formatDuration(avgSeconds)}
                 </p>
               </div>
             </div>
@@ -277,8 +277,8 @@ export default function PlaylistCalculatorPage() {
           미리 파악할 수 있어 학습 계획이나 시간 관리에 도움이 됩니다.
         </p>
         <p className="text-slate-500 leading-relaxed">
-          1.25x, 1.5x, 1.75x, 2x 배속으로 들을 때 걸리는 시간도 함께
-          계산합니다. 유튜브에서 직접 제공하지 않는 기능이라 특히 유용합니다.
+          0.25x부터 4x까지 배속을 자유롭게 조절하여 실제 시청 시간을 확인할 수
+          있습니다. 유튜브에서 직접 제공하지 않는 기능이라 특히 유용합니다.
         </p>
         <h3 className="text-lg font-semibold text-slate-900 pt-2">사용 방법</h3>
         <ol className="text-slate-500 space-y-2 list-decimal list-inside">
