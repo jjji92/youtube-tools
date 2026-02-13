@@ -3,12 +3,15 @@ import { usePageMeta } from '../utils/usePageMeta';
 import { extractPlaylistId } from '../utils/urlParser';
 import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration } from '../utils/duration';
+import { useLanguage } from '../i18n/LanguageContext';
 import type { VideoInfo } from '../types/youtube';
 
 export default function PlaylistCalculatorPage() {
+  const { lang, t } = useLanguage();
+
   usePageMeta(
-    '유튜브 재생시간 계산기 - 재생목록 총 시간 계산',
-    '유튜브 재생목록의 총 재생시간을 계산합니다. 배속별 시간 확인, 여러 영상 합산 계산까지 한번에.',
+    t('playlist.pageTitle'),
+    t('playlist.pageDesc'),
   );
 
   const [url, setUrl] = useState('');
@@ -32,7 +35,7 @@ export default function PlaylistCalculatorPage() {
 
     const playlistId = extractPlaylistId(url);
     if (!playlistId) {
-      setError('올바른 유튜브 재생목록 URL을 입력해주세요.');
+      setError(t('playlist.invalidUrl'));
       return;
     }
 
@@ -43,7 +46,7 @@ export default function PlaylistCalculatorPage() {
       setUnavailableCount(unavail);
 
       if (videoIds.length === 0) {
-        setError('재생 가능한 영상이 없습니다.');
+        setError(t('common.noPlayableVideos'));
         return;
       }
 
@@ -53,7 +56,7 @@ export default function PlaylistCalculatorPage() {
       setVideos(details);
       setTotalSeconds(total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : t('common.errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -61,9 +64,9 @@ export default function PlaylistCalculatorPage() {
 
   const handleCopy = async () => {
     const lines = [
-      `총 영상: ${videos.length}개`,
-      `총 재생시간: ${formatDuration(totalSeconds)}`,
-      `${selectedSpeed}x 배속: ${formatDuration(Math.round(totalSeconds / selectedSpeed))}`,
+      `${t('playlist.copyTotal')}: ${videos.length}${t('common.videoCount')}`,
+      `${t('playlist.copyTime')}: ${formatDuration(totalSeconds, lang)}`,
+      `${selectedSpeed}x ${t('playlist.copySpeed')}: ${formatDuration(Math.round(totalSeconds / selectedSpeed), lang)}`,
     ].join('\n');
 
     await navigator.clipboard.writeText(lines);
@@ -82,21 +85,21 @@ export default function PlaylistCalculatorPage() {
       {/* 입력 카드 */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm">
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-          유튜브 재생목록 시간 계산기
+          {t('playlist.heading')}
         </h1>
         <p className="text-slate-400 text-sm mb-8">
-          YouTube에서 재생목록을 열고 주소창의 URL을 복사해서 붙여넣으세요
+          {t('playlist.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            재생목록 URL
+            {t('playlist.label')}
           </label>
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.youtube.com/playlist?list=PLxxxxxxxx"
+            placeholder={t('playlist.placeholder')}
             className="w-full px-4 py-3.5 border border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors mb-4"
           />
           <button
@@ -110,10 +113,10 @@ export default function PlaylistCalculatorPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                분석 중...
+                {t('common.analyzing')}
               </span>
             ) : (
-              '재생목록 분석하기'
+              t('playlist.submit')
             )}
           </button>
         </form>
@@ -131,7 +134,7 @@ export default function PlaylistCalculatorPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-slate-900">
-                재생 속도
+                {t('common.speed')}
               </h2>
               <span className="text-2xl font-bold text-slate-900">
                 {selectedSpeed}x
@@ -170,49 +173,49 @@ export default function PlaylistCalculatorPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-slate-900">
-                분석 결과
+                {t('common.results')}
               </h2>
               <button
                 onClick={handleCopy}
                 className="px-3.5 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-500"
               >
-                {copied ? '복사 완료' : '결과 복사'}
+                {copied ? t('common.copied') : t('common.copyResult')}
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-xl bg-red-50 p-5 text-center">
-                <p className="text-xs font-medium text-red-400 mb-1">총 영상</p>
+                <p className="text-xs font-medium text-red-400 mb-1">{t('common.totalVideos')}</p>
                 <p className="text-2xl font-bold text-red-600">
                   {videos.length}
-                  <span className="text-base font-medium ml-0.5">개</span>
+                  <span className="text-base font-medium ml-0.5">{t('common.videoCount')}</span>
                 </p>
                 {unavailableCount > 0 && (
                   <p className="text-xs text-red-400 mt-1">
-                    +{unavailableCount}개 비공개
+                    +{unavailableCount}{t('common.privateCount')}
                   </p>
                 )}
               </div>
               <div className="rounded-xl bg-blue-50 p-5 text-center">
                 <p className="text-xs font-medium text-blue-400 mb-1">
-                  시청 시간
+                  {t('common.watchTime')}
                   {selectedSpeed !== 1 && (
                     <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {formatDuration(adjustedSeconds)}
+                  {formatDuration(adjustedSeconds, lang)}
                 </p>
               </div>
               <div className="rounded-xl bg-violet-50 p-5 text-center">
                 <p className="text-xs font-medium text-violet-400 mb-1">
-                  평균 길이
+                  {t('common.avgLength')}
                   {selectedSpeed !== 1 && (
                     <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-violet-600">
-                  {formatDuration(avgSeconds)}
+                  {formatDuration(avgSeconds, lang)}
                 </p>
               </div>
             </div>
@@ -225,7 +228,7 @@ export default function PlaylistCalculatorPage() {
               className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
             >
               <span className="font-semibold text-slate-900 text-sm">
-                영상 목록 ({videos.length}개)
+                {t('common.videoList')} ({videos.length}{t('common.videoCount')})
               </span>
               <svg
                 className={`w-5 h-5 text-slate-400 transition-transform ${showVideos ? 'rotate-180' : ''}`}
@@ -280,23 +283,20 @@ export default function PlaylistCalculatorPage() {
       {/* SEO 콘텐츠 */}
       <section className="mt-16 space-y-4">
         <h2 className="text-xl font-bold text-slate-900">
-          유튜브 재생목록 시간 계산기란?
+          {t('playlist.seoTitle')}
         </h2>
         <p className="text-slate-500 leading-relaxed">
-          유튜브 재생목록의 모든 영상 시간을 합산하여 총 재생시간을 알려드립니다.
-          강의 시리즈, 음악 플레이리스트, 팟캐스트 모음 등 재생목록의 총 길이를
-          미리 파악할 수 있어 학습 계획이나 시간 관리에 도움이 됩니다.
+          {t('playlist.seoP1')}
         </p>
         <p className="text-slate-500 leading-relaxed">
-          0.25x부터 4x까지 배속을 자유롭게 조절하여 실제 시청 시간을 확인할 수
-          있습니다. 유튜브에서 직접 제공하지 않는 기능이라 특히 유용합니다.
+          {t('playlist.seoP2')}
         </p>
-        <h3 className="text-lg font-semibold text-slate-900 pt-2">사용 방법</h3>
+        <h3 className="text-lg font-semibold text-slate-900 pt-2">{t('playlist.seoHowTo')}</h3>
         <ol className="text-slate-500 space-y-2 list-decimal list-inside">
-          <li>유튜브에서 재생목록 페이지를 엽니다.</li>
-          <li>주소창의 URL을 복사합니다.</li>
-          <li>위 입력창에 붙여넣고 &quot;재생목록 분석하기&quot;를 클릭합니다.</li>
-          <li>총 재생시간과 배속별 시간을 확인합니다.</li>
+          <li>{t('playlist.seoStep1')}</li>
+          <li>{t('playlist.seoStep2')}</li>
+          <li>{t('playlist.seoStep3')}</li>
+          <li>{t('playlist.seoStep4')}</li>
         </ol>
       </section>
     </div>

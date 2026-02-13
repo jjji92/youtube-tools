@@ -3,12 +3,15 @@ import { usePageMeta } from '../utils/usePageMeta';
 import { parseMultipleUrls } from '../utils/urlParser';
 import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration } from '../utils/duration';
+import { useLanguage } from '../i18n/LanguageContext';
 import type { VideoInfo } from '../types/youtube';
 
 export default function MultiVideoCalculatorPage() {
+  const { lang, t } = useLanguage();
+
   usePageMeta(
-    '유튜브 영상 시간 합산 계산기 - 여러 영상 합계',
-    '여러 유튜브 영상과 재생목록의 재생시간을 합산합니다. URL을 줄바꿈으로 구분하여 입력하세요.',
+    t('multi.pageTitle'),
+    t('multi.pageDesc'),
   );
 
   const [text, setText] = useState('');
@@ -35,7 +38,7 @@ export default function MultiVideoCalculatorPage() {
     setInvalidLines(invalid);
 
     if (videoIds.length === 0 && playlistIds.length === 0) {
-      setError('유효한 유튜브 영상 또는 재생목록 URL을 하나 이상 입력해주세요.');
+      setError(t('multi.invalidUrl'));
       return;
     }
 
@@ -56,7 +59,7 @@ export default function MultiVideoCalculatorPage() {
       setUnavailableCount(totalUnavailable);
 
       if (allVideoIds.length === 0) {
-        setError('재생 가능한 영상이 없습니다.');
+        setError(t('common.noPlayableVideos'));
         return;
       }
 
@@ -66,7 +69,7 @@ export default function MultiVideoCalculatorPage() {
       setVideos(details);
       setTotalSeconds(total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : t('common.errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -74,9 +77,9 @@ export default function MultiVideoCalculatorPage() {
 
   const handleCopy = async () => {
     const lines = [
-      `총 영상: ${videos.length}개`,
-      `총 재생시간: ${formatDuration(totalSeconds)}`,
-      `${selectedSpeed}x 배속: ${formatDuration(Math.round(totalSeconds / selectedSpeed))}`,
+      `${t('playlist.copyTotal')}: ${videos.length}${t('common.videoCount')}`,
+      `${t('playlist.copyTime')}: ${formatDuration(totalSeconds, lang)}`,
+      `${selectedSpeed}x ${t('playlist.copySpeed')}: ${formatDuration(Math.round(totalSeconds / selectedSpeed), lang)}`,
     ].join('\n');
 
     await navigator.clipboard.writeText(lines);
@@ -95,15 +98,15 @@ export default function MultiVideoCalculatorPage() {
       {/* 입력 카드 */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm">
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-          유튜브 영상 시간 합산 계산기
+          {t('multi.heading')}
         </h1>
         <p className="text-slate-400 text-sm mb-8">
-          영상 URL 또는 재생목록 URL을 한 줄에 하나씩 입력하면 총 재생시간을 합산합니다
+          {t('multi.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            영상 / 재생목록 URL 목록
+            {t('multi.label')}
           </label>
           <textarea
             value={text}
@@ -123,10 +126,10 @@ export default function MultiVideoCalculatorPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                분석 중...
+                {t('common.analyzing')}
               </span>
             ) : (
-              '합산 계산하기'
+              t('multi.submit')
             )}
           </button>
         </form>
@@ -141,7 +144,7 @@ export default function MultiVideoCalculatorPage() {
       {invalidLines.length > 0 && (
         <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700">
           <p className="font-medium text-sm mb-2">
-            인식할 수 없는 URL ({invalidLines.length}개)
+            {t('multi.unrecognizedUrls')} ({invalidLines.length}{t('common.videoCount')})
           </p>
           <ul className="text-xs space-y-1">
             {invalidLines.map((line, i) => (
@@ -159,7 +162,7 @@ export default function MultiVideoCalculatorPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-slate-900">
-                재생 속도
+                {t('common.speed')}
               </h2>
               <span className="text-2xl font-bold text-slate-900">
                 {selectedSpeed}x
@@ -198,49 +201,49 @@ export default function MultiVideoCalculatorPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-slate-900">
-                분석 결과
+                {t('common.results')}
               </h2>
               <button
                 onClick={handleCopy}
                 className="px-3.5 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-500"
               >
-                {copied ? '복사 완료' : '결과 복사'}
+                {copied ? t('common.copied') : t('common.copyResult')}
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-xl bg-red-50 p-5 text-center">
-                <p className="text-xs font-medium text-red-400 mb-1">총 영상</p>
+                <p className="text-xs font-medium text-red-400 mb-1">{t('common.totalVideos')}</p>
                 <p className="text-2xl font-bold text-red-600">
                   {videos.length}
-                  <span className="text-base font-medium ml-0.5">개</span>
+                  <span className="text-base font-medium ml-0.5">{t('common.videoCount')}</span>
                 </p>
                 {unavailableCount > 0 && (
                   <p className="text-xs text-red-400 mt-1">
-                    +{unavailableCount}개 비공개
+                    +{unavailableCount}{t('common.privateCount')}
                   </p>
                 )}
               </div>
               <div className="rounded-xl bg-blue-50 p-5 text-center">
                 <p className="text-xs font-medium text-blue-400 mb-1">
-                  시청 시간
+                  {t('common.watchTime')}
                   {selectedSpeed !== 1 && (
                     <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {formatDuration(adjustedSeconds)}
+                  {formatDuration(adjustedSeconds, lang)}
                 </p>
               </div>
               <div className="rounded-xl bg-violet-50 p-5 text-center">
                 <p className="text-xs font-medium text-violet-400 mb-1">
-                  평균 길이
+                  {t('common.avgLength')}
                   {selectedSpeed !== 1 && (
                     <span className="ml-1">({selectedSpeed}x)</span>
                   )}
                 </p>
                 <p className="text-2xl font-bold text-violet-600">
-                  {formatDuration(avgSeconds)}
+                  {formatDuration(avgSeconds, lang)}
                 </p>
               </div>
             </div>
@@ -249,7 +252,7 @@ export default function MultiVideoCalculatorPage() {
           {/* 영상 목록 */}
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="px-6 py-4 font-semibold text-slate-900 text-sm border-b">
-              영상 목록 ({videos.length}개)
+              {t('common.videoList')} ({videos.length}{t('common.videoCount')})
             </div>
             <div className="divide-y divide-slate-100">
               {videos.map((video, i) => (
@@ -292,15 +295,13 @@ export default function MultiVideoCalculatorPage() {
       {/* SEO 콘텐츠 */}
       <section className="mt-16 space-y-4">
         <h2 className="text-xl font-bold text-slate-900">
-          여러 영상 시간 합산하기
+          {t('multi.seoTitle')}
         </h2>
         <p className="text-slate-500 leading-relaxed">
-          개별 영상 URL과 재생목록 URL을 섞어서 입력할 수 있습니다.
-          재생목록을 입력하면 포함된 모든 영상의 시간을 자동으로 합산합니다.
+          {t('multi.seoP1')}
         </p>
         <p className="text-slate-500 leading-relaxed">
-          youtube.com/watch, youtu.be 단축 URL, youtube.com/shorts, embed URL,
-          youtube.com/playlist 등 다양한 형식을 지원합니다.
+          {t('multi.seoP2')}
         </p>
       </section>
     </div>
