@@ -5,6 +5,8 @@ import { fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration, calculateSpeedDurations } from '../utils/duration';
 import type { VideoInfo, SpeedDuration } from '../types/youtube';
 
+const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2] as const;
+
 export default function MultiVideoCalculatorPage() {
   usePageMeta(
     '유튜브 영상 시간 합산 계산기 - 여러 영상 합계',
@@ -17,6 +19,7 @@ export default function MultiVideoCalculatorPage() {
   const [videos, setVideos] = useState<VideoInfo[]>([]);
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [speeds, setSpeeds] = useState<SpeedDuration[]>([]);
+  const [selectedSpeed, setSelectedSpeed] = useState(1);
   const [invalidLines, setInvalidLines] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
@@ -26,6 +29,7 @@ export default function MultiVideoCalculatorPage() {
     setVideos([]);
     setTotalSeconds(0);
     setSpeeds([]);
+    setSelectedSpeed(1);
     setInvalidLines([]);
 
     const { videoIds, invalidLines: invalid } = parseMultipleVideoUrls(text);
@@ -52,124 +56,176 @@ export default function MultiVideoCalculatorPage() {
   };
 
   const handleCopy = async () => {
-    const text = [
+    const lines = [
       `총 영상: ${videos.length}개`,
       `총 재생시간: ${formatDuration(totalSeconds)}`,
       '',
       ...speeds.map((s) => `${s.label} 배속: ${s.formatted}`),
     ].join('\n');
 
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(lines);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900 mb-2">
-        유튜브 영상 시간 합산 계산기
-      </h1>
-      <p className="text-slate-500 mb-6">
-        여러 영상의 URL을 입력하면 총 재생시간을 합산합니다. (줄바꿈으로 구분)
-      </p>
+  const currentSpeed = speeds.find((s) => s.speed === selectedSpeed);
+  const avgSeconds =
+    videos.length > 0 ? Math.round(totalSeconds / videos.length) : 0;
 
-      <form onSubmit={handleSubmit} className="mb-8">
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={`https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/watch?v=...`}
-          rows={6}
-          className="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent mb-3"
-        />
-        <button
-          type="submit"
-          disabled={loading || !text.trim()}
-          className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? '계산 중...' : '합산 계산하기'}
-        </button>
-      </form>
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* 입력 카드 */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+          유튜브 영상 시간 합산 계산기
+        </h1>
+        <p className="text-slate-400 text-sm mb-8">
+          여러 영상의 URL을 한 줄에 하나씩 입력하면 총 재생시간을 합산합니다
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            영상 URL 목록
+          </label>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={`https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/watch?v=...`}
+            rows={6}
+            className="w-full px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-mono bg-slate-50 focus:bg-white resize-y focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors mb-4"
+          />
+          <button
+            type="submit"
+            disabled={loading || !text.trim()}
+            className="w-full py-3.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-base"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                분석 중...
+              </span>
+            ) : (
+              '합산 계산하기'
+            )}
+          </button>
+        </form>
+      </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 mb-6">
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
           {error}
         </div>
       )}
 
       {invalidLines.length > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 mb-6">
-          <p className="font-medium mb-1">인식할 수 없는 URL ({invalidLines.length}개)</p>
-          <ul className="text-sm space-y-0.5">
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700">
+          <p className="font-medium text-sm mb-2">
+            인식할 수 없는 URL ({invalidLines.length}개)
+          </p>
+          <ul className="text-xs space-y-1">
             {invalidLines.map((line, i) => (
-              <li key={i} className="truncate font-mono">{line}</li>
+              <li key={i} className="truncate font-mono text-amber-600">
+                {line}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
       {totalSeconds > 0 && (
-        <div className="space-y-6">
-          {/* 총 시간 카드 */}
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">계산 결과</h2>
-              <button
-                onClick={handleCopy}
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-              >
-                {copied ? '복사됨!' : '결과 복사'}
-              </button>
-            </div>
-
-            <div className="text-3xl font-bold text-red-600 mb-1">
-              {formatDuration(totalSeconds)}
-            </div>
-            <p className="text-slate-500 text-sm">총 {videos.length}개 영상</p>
-          </div>
-
-          {/* 배속별 시간 */}
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
-              배속별 재생시간
+        <div className="mt-8 space-y-6">
+          {/* 배속 선택 탭 */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              재생 속도
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {speeds.map((s) => (
-                <div
-                  key={s.speed}
-                  className={`p-3 rounded-lg text-center ${
-                    s.speed === 1
-                      ? 'bg-red-50 border-2 border-red-200'
-                      : 'bg-slate-50 border border-slate-200'
+            <div className="grid grid-cols-5 gap-2 p-1.5 bg-slate-100 rounded-xl">
+              {SPEED_OPTIONS.map((speed) => (
+                <button
+                  key={speed}
+                  onClick={() => setSelectedSpeed(speed)}
+                  className={`py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    selectedSpeed === speed
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <div className="text-sm font-medium text-slate-500 mb-1">
-                    {s.label}
-                  </div>
-                  <div
-                    className={`font-semibold ${s.speed === 1 ? 'text-red-600' : 'text-slate-900'}`}
-                  >
-                    {s.formatted}
-                  </div>
-                </div>
+                  {speed === 1 ? '1배속' : `${speed}x`}
+                </button>
               ))}
             </div>
           </div>
 
+          {/* 분석 결과 통계 카드 */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-slate-900">
+                분석 결과
+              </h2>
+              <button
+                onClick={handleCopy}
+                className="px-3.5 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-500"
+              >
+                {copied ? '복사 완료' : '결과 복사'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-xl bg-red-50 p-5 text-center">
+                <p className="text-xs font-medium text-red-400 mb-1">총 영상</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {videos.length}
+                  <span className="text-base font-medium ml-0.5">개</span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-blue-50 p-5 text-center">
+                <p className="text-xs font-medium text-blue-400 mb-1">
+                  시청 시간
+                  {selectedSpeed !== 1 && (
+                    <span className="ml-1">({selectedSpeed}x 기준)</span>
+                  )}
+                </p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {currentSpeed
+                    ? currentSpeed.formatted
+                    : formatDuration(totalSeconds)}
+                </p>
+              </div>
+              <div className="rounded-xl bg-violet-50 p-5 text-center">
+                <p className="text-xs font-medium text-violet-400 mb-1">
+                  평균 길이
+                  {selectedSpeed !== 1 && (
+                    <span className="ml-1">({selectedSpeed}x 기준)</span>
+                  )}
+                </p>
+                <p className="text-2xl font-bold text-violet-600">
+                  {formatDuration(Math.round(avgSeconds / selectedSpeed))}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* 영상 목록 */}
-          <div className="rounded-lg border bg-white shadow-sm">
-            <div className="p-4 font-semibold text-slate-900 border-b">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="px-6 py-4 font-semibold text-slate-900 text-sm border-b">
               영상 목록 ({videos.length}개)
             </div>
-            <div className="divide-y">
+            <div className="divide-y divide-slate-100">
               {videos.map((video, i) => (
-                <div key={video.id} className="p-3 flex gap-3 items-center">
-                  <span className="text-xs text-slate-400 w-6 text-right shrink-0">
+                <div
+                  key={video.id}
+                  className="px-6 py-3 flex gap-3 items-center hover:bg-slate-50 transition-colors"
+                >
+                  <span className="text-xs text-slate-300 w-6 text-right shrink-0 font-mono">
                     {i + 1}
                   </span>
                   <img
                     src={video.thumbnail}
                     alt=""
-                    className="w-16 h-9 object-cover rounded shrink-0"
+                    className="w-20 h-11 object-cover rounded-lg shrink-0"
                     loading="lazy"
                   />
                   <div className="min-w-0 flex-1">
@@ -177,13 +233,15 @@ export default function MultiVideoCalculatorPage() {
                       href={`https://www.youtube.com/watch?v=${video.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-slate-900 hover:text-red-600 line-clamp-1"
+                      className="text-sm text-slate-800 hover:text-red-600 line-clamp-1 font-medium"
                     >
                       {video.title}
                     </a>
-                    <p className="text-xs text-slate-400">{video.channelTitle}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {video.channelTitle}
+                    </p>
                   </div>
-                  <span className="text-sm text-slate-600 font-mono shrink-0">
+                  <span className="text-sm text-slate-500 font-mono shrink-0 bg-slate-100 px-2 py-0.5 rounded">
                     {video.durationFormatted}
                   </span>
                 </div>
@@ -194,15 +252,15 @@ export default function MultiVideoCalculatorPage() {
       )}
 
       {/* SEO 콘텐츠 */}
-      <section className="mt-12 prose prose-slate max-w-none">
-        <h2 className="text-xl font-bold text-slate-900 mb-4">
+      <section className="mt-16 space-y-4">
+        <h2 className="text-xl font-bold text-slate-900">
           여러 영상 시간 합산하기
         </h2>
-        <p className="text-slate-600 leading-relaxed mb-4">
+        <p className="text-slate-500 leading-relaxed">
           재생목록에 포함되지 않은 개별 영상들의 시간을 합산하고 싶을 때 사용합니다.
           영상 URL을 한 줄에 하나씩 입력하면 전체 합계를 계산합니다.
         </p>
-        <p className="text-slate-600 leading-relaxed">
+        <p className="text-slate-500 leading-relaxed">
           youtube.com/watch, youtu.be 단축 URL, youtube.com/shorts, embed URL 등
           다양한 형식을 지원합니다.
         </p>
