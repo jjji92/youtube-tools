@@ -137,21 +137,32 @@ export default function PlaylistCalculatorPage() {
                 {selectedSpeed}x
               </span>
             </div>
-            <input
-              type="range"
-              min="0.25"
-              max="4"
-              step="0.25"
-              value={selectedSpeed}
-              onChange={(e) => setSelectedSpeed(parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-red-600"
-            />
-            <div className="flex justify-between text-xs text-slate-400 mt-2">
-              <span>0.25x</span>
-              <span>1x</span>
-              <span>2x</span>
-              <span>3x</span>
-              <span>4x</span>
+            <div className="relative h-4 flex items-center">
+              <div className="absolute inset-x-0 h-2 bg-slate-200 rounded-full" />
+              <div
+                className="absolute left-0 h-2 bg-red-100 rounded-full"
+                style={{ width: `${((selectedSpeed - 0.25) / 3.75) * 100}%` }}
+              />
+              <div
+                className="absolute w-4 h-4 bg-red-600 rounded-full shadow-md -translate-x-1/2 pointer-events-none z-10"
+                style={{ left: `${((selectedSpeed - 0.25) / 3.75) * 100}%` }}
+              />
+              <input
+                type="range"
+                min="0.25"
+                max="4"
+                step="0.25"
+                value={selectedSpeed}
+                onChange={(e) => setSelectedSpeed(parseFloat(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+              />
+            </div>
+            <div className="relative mt-3 h-4 text-xs text-slate-400">
+              <span className="absolute left-0">0.25x</span>
+              <span className="absolute -translate-x-1/2" style={{ left: '20%' }}>1x</span>
+              <span className="absolute -translate-x-1/2" style={{ left: '46.67%' }}>2x</span>
+              <span className="absolute -translate-x-1/2" style={{ left: '73.33%' }}>3x</span>
+              <span className="absolute right-0">4x</span>
             </div>
           </div>
 
