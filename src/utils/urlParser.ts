@@ -35,8 +35,9 @@ export function extractVideoId(url: string): string | null {
   return null;
 }
 
-export function parseMultipleVideoUrls(text: string): {
+export function parseMultipleUrls(text: string): {
   videoIds: string[];
+  playlistIds: string[];
   invalidLines: string[];
 } {
   const lines = text
@@ -45,16 +46,22 @@ export function parseMultipleVideoUrls(text: string): {
     .filter((l) => l.length > 0);
 
   const videoIds: string[] = [];
+  const playlistIds: string[] = [];
   const invalidLines: string[] = [];
 
   for (const line of lines) {
-    const id = extractVideoId(line);
-    if (id) {
-      if (!videoIds.includes(id)) videoIds.push(id);
+    const playlistId = extractPlaylistId(line);
+    if (playlistId) {
+      if (!playlistIds.includes(playlistId)) playlistIds.push(playlistId);
+      continue;
+    }
+    const videoId = extractVideoId(line);
+    if (videoId) {
+      if (!videoIds.includes(videoId)) videoIds.push(videoId);
     } else {
       invalidLines.push(line);
     }
   }
 
-  return { videoIds, invalidLines };
+  return { videoIds, playlistIds, invalidLines };
 }

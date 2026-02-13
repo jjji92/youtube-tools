@@ -1,6 +1,6 @@
 import type { SpeedDuration } from '../types/youtube';
 
-const SPEEDS = [1, 1.25, 1.5, 1.75, 2] as const;
+const SPEEDS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3] as const;
 
 export function parseISO8601Duration(iso: string): number {
   const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);

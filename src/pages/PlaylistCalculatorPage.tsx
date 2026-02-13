@@ -5,7 +5,7 @@ import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration, calculateSpeedDurations } from '../utils/duration';
 import type { VideoInfo, SpeedDuration } from '../types/youtube';
 
-const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2] as const;
+const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3] as const;
 
 export default function PlaylistCalculatorPage() {
   usePageMeta(
@@ -136,7 +136,7 @@ export default function PlaylistCalculatorPage() {
             <h2 className="text-base font-semibold text-slate-900 mb-3">
               재생 속도
             </h2>
-            <div className="grid grid-cols-5 gap-2 p-1.5 bg-slate-100 rounded-xl">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 p-1.5 bg-slate-100 rounded-xl">
               {SPEED_OPTIONS.map((speed) => (
                 <button
                   key={speed}

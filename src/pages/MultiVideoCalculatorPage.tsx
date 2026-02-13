@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { usePageMeta } from '../utils/usePageMeta';
-import { parseMultipleVideoUrls } from '../utils/urlParser';
-import { fetchVideoDetails } from '../utils/youtubeApi';
+import { parseMultipleUrls } from '../utils/urlParser';
+import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration, calculateSpeedDurations } from '../utils/duration';
 import type { VideoInfo, SpeedDuration } from '../types/youtube';
 
-const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2] as const;
+const SPEED_OPTIONS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3] as const;
 
 export default function MultiVideoCalculatorPage() {
   usePageMeta(
     '유튜브 영상 시간 합산 계산기 - 여러 영상 합계',
-    '여러 유튜브 영상의 재생시간을 합산합니다. URL을 줄바꿈으로 구분하여 입력하세요.',
+    '여러 유튜브 영상과 재생목록의 재생시간을 합산합니다. URL을 줄바꿈으로 구분하여 입력하세요.',
   );
 
   const [text, setText] = useState('');
@@ -21,6 +21,7 @@ export default function MultiVideoCalculatorPage() {
   const [speeds, setSpeeds] = useState<SpeedDuration[]>([]);
   const [selectedSpeed, setSelectedSpeed] = useState(1);
   const [invalidLines, setInvalidLines] = useState<string[]>([]);
+  const [unavailableCount, setUnavailableCount] = useState(0);
   const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,18 +32,40 @@ export default function MultiVideoCalculatorPage() {
     setSpeeds([]);
     setSelectedSpeed(1);
     setInvalidLines([]);
+    setUnavailableCount(0);
 
-    const { videoIds, invalidLines: invalid } = parseMultipleVideoUrls(text);
+    const { videoIds, playlistIds, invalidLines: invalid } =
+      parseMultipleUrls(text);
     setInvalidLines(invalid);
 
-    if (videoIds.length === 0) {
-      setError('유효한 유튜브 영상 URL을 하나 이상 입력해주세요.');
+    if (videoIds.length === 0 && playlistIds.length === 0) {
+      setError('유효한 유튜브 영상 또는 재생목록 URL을 하나 이상 입력해주세요.');
       return;
     }
 
     setLoading(true);
     try {
-      const details = await fetchVideoDetails(videoIds);
+      // 재생목록에서 영상 ID 수집
+      const allVideoIds = [...videoIds];
+      let totalUnavailable = 0;
+
+      for (const plId of playlistIds) {
+        const { videoIds: plVideoIds, unavailableCount: unavail } =
+          await fetchPlaylistVideoIds(plId);
+        totalUnavailable += unavail;
+        for (const vid of plVideoIds) {
+          if (!allVideoIds.includes(vid)) allVideoIds.push(vid);
+        }
+      }
+
+      setUnavailableCount(totalUnavailable);
+
+      if (allVideoIds.length === 0) {
+        setError('재생 가능한 영상이 없습니다.');
+        return;
+      }
+
+      const details = await fetchVideoDetails(allVideoIds);
       const total = details.reduce((sum, v) => sum + v.durationSeconds, 0);
 
       setVideos(details);
@@ -80,17 +103,17 @@ export default function MultiVideoCalculatorPage() {
           유튜브 영상 시간 합산 계산기
         </h1>
         <p className="text-slate-400 text-sm mb-8">
-          여러 영상의 URL을 한 줄에 하나씩 입력하면 총 재생시간을 합산합니다
+          영상 URL 또는 재생목록 URL을 한 줄에 하나씩 입력하면 총 재생시간을 합산합니다
         </p>
 
         <form onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            영상 URL 목록
+            영상 / 재생목록 URL 목록
           </label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={`https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/watch?v=...`}
+            placeholder={`https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/playlist?list=...`}
             rows={6}
             className="w-full px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-mono bg-slate-50 focus:bg-white resize-y focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors mb-4"
           />
@@ -142,7 +165,7 @@ export default function MultiVideoCalculatorPage() {
             <h2 className="text-base font-semibold text-slate-900 mb-3">
               재생 속도
             </h2>
-            <div className="grid grid-cols-5 gap-2 p-1.5 bg-slate-100 rounded-xl">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 p-1.5 bg-slate-100 rounded-xl">
               {SPEED_OPTIONS.map((speed) => (
                 <button
                   key={speed}
@@ -180,6 +203,11 @@ export default function MultiVideoCalculatorPage() {
                   {videos.length}
                   <span className="text-base font-medium ml-0.5">개</span>
                 </p>
+                {unavailableCount > 0 && (
+                  <p className="text-xs text-red-400 mt-1">
+                    +{unavailableCount}개 비공개
+                  </p>
+                )}
               </div>
               <div className="rounded-xl bg-blue-50 p-5 text-center">
                 <p className="text-xs font-medium text-blue-400 mb-1">
@@ -257,12 +285,12 @@ export default function MultiVideoCalculatorPage() {
           여러 영상 시간 합산하기
         </h2>
         <p className="text-slate-500 leading-relaxed">
-          재생목록에 포함되지 않은 개별 영상들의 시간을 합산하고 싶을 때 사용합니다.
-          영상 URL을 한 줄에 하나씩 입력하면 전체 합계를 계산합니다.
+          개별 영상 URL과 재생목록 URL을 섞어서 입력할 수 있습니다.
+          재생목록을 입력하면 포함된 모든 영상의 시간을 자동으로 합산합니다.
         </p>
         <p className="text-slate-500 leading-relaxed">
-          youtube.com/watch, youtu.be 단축 URL, youtube.com/shorts, embed URL 등
-          다양한 형식을 지원합니다.
+          youtube.com/watch, youtu.be 단축 URL, youtube.com/shorts, embed URL,
+          youtube.com/playlist 등 다양한 형식을 지원합니다.
         </p>
       </section>
     </div>
