@@ -9,6 +9,9 @@ const FaqPage = lazy(() => import('./pages/FaqPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
+const TipsPage = lazy(() => import('./pages/TipsPage'));
+const SpeedLearningPage = lazy(() => import('./pages/SpeedLearningPage'));
+const PlaylistStudyPage = lazy(() => import('./pages/PlaylistStudyPage'));
 
 export default function App() {
   const location = useLocation();
@@ -17,6 +20,7 @@ export default function App() {
   const NAV_ITEMS = [
     { to: '/', label: t('nav.playlist') },
     { to: '/multi', label: t('nav.multi') },
+    { to: '/tips', label: t('nav.tips') },
     { to: '/guide', label: t('nav.guide') },
     { to: '/faq', label: t('nav.faq') },
   ];
@@ -36,7 +40,7 @@ export default function App() {
                   key={item.to}
                   to={item.to}
                   className={`px-3 py-1.5 rounded-md text-sm whitespace-nowrap transition-colors ${
-                    location.pathname === item.to
+                    location.pathname === item.to || (item.to === '/tips' && location.pathname.startsWith('/tips'))
                       ? 'bg-red-50 text-red-600 font-medium'
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
@@ -70,6 +74,9 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/tips" element={<TipsPage />} />
+            <Route path="/tips/speed-learning" element={<SpeedLearningPage />} />
+            <Route path="/tips/playlist-study" element={<PlaylistStudyPage />} />
           </Routes>
         </Suspense>
       </main>
@@ -80,6 +87,7 @@ export default function App() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3">
             <Link to="/" className="hover:text-slate-700">{t('nav.playlist')}</Link>
             <Link to="/multi" className="hover:text-slate-700">{t('nav.multi')}</Link>
+            <Link to="/tips" className="hover:text-slate-700">{t('nav.tips')}</Link>
             <Link to="/guide" className="hover:text-slate-700">{t('nav.guide')}</Link>
             <Link to="/faq" className="hover:text-slate-700">{t('nav.faq')}</Link>
             <Link to="/about" className="hover:text-slate-700">{t('nav.about')}</Link>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usePageMeta } from '../utils/usePageMeta';
 import { extractPlaylistId } from '../utils/urlParser';
 import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
@@ -281,23 +282,51 @@ export default function PlaylistCalculatorPage() {
       )}
 
       {/* SEO 콘텐츠 */}
-      <section className="mt-16 space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">
-          {t('playlist.seoTitle')}
-        </h2>
-        <p className="text-slate-500 leading-relaxed">
-          {t('playlist.seoP1')}
-        </p>
-        <p className="text-slate-500 leading-relaxed">
-          {t('playlist.seoP2')}
-        </p>
-        <h3 className="text-lg font-semibold text-slate-900 pt-2">{t('playlist.seoHowTo')}</h3>
-        <ol className="text-slate-500 space-y-2 list-decimal list-inside">
-          <li>{t('playlist.seoStep1')}</li>
-          <li>{t('playlist.seoStep2')}</li>
-          <li>{t('playlist.seoStep3')}</li>
-          <li>{t('playlist.seoStep4')}</li>
-        </ol>
+      <section className="mt-16 space-y-6">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900 mb-3">
+            {t('playlist.seoTitle')}
+          </h2>
+          <p className="text-slate-500 leading-relaxed mb-3">
+            {t('playlist.seoP1')}
+          </p>
+          <p className="text-slate-500 leading-relaxed">
+            {t('playlist.seoP2')}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">{t('playlist.seoHowTo')}</h3>
+          <ol className="text-slate-600 space-y-3 list-decimal list-inside">
+            <li>{t('playlist.seoStep1')}</li>
+            <li>{t('playlist.seoStep2')}</li>
+            <li>{t('playlist.seoStep3')}</li>
+            <li>{t('playlist.seoStep4')}</li>
+          </ol>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">{t('playlist.seoUseCaseTitle')}</h3>
+          <ul className="space-y-3">
+            {(['seoUseCase1', 'seoUseCase2', 'seoUseCase3', 'seoUseCase4'] as const).map((key) => (
+              <li key={key} className="flex gap-3 text-slate-600 text-sm leading-relaxed">
+                <span className="text-red-500 font-bold flex-shrink-0">✓</span>
+                <span>{t(`playlist.${key}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-blue-50 bg-blue-50 p-6">
+          <h3 className="text-base font-semibold text-slate-900 mb-2">{t('playlist.seoTipsTitle')}</h3>
+          <p className="text-slate-600 text-sm leading-relaxed mb-3">{t('playlist.seoTipsDesc')}</p>
+          <Link
+            to="/tips/speed-learning"
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            {t('playlist.seoTipsLink')} →
+          </Link>
+        </div>
       </section>
     </div>
   );
