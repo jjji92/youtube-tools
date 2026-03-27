@@ -24,6 +24,30 @@ export default function TipsPage() {
       color: 'from-blue-50 to-indigo-50 border-blue-100',
       iconBg: 'bg-blue-100 text-blue-600',
     },
+    {
+      title: t('tips.card3Title'),
+      desc: t('tips.card3Desc'),
+      link: t('tips.card3Link'),
+      icon: '⌨️',
+      color: 'from-violet-50 to-purple-50 border-violet-100',
+      iconBg: 'bg-violet-100 text-violet-600',
+    },
+    {
+      title: t('tips.card4Title'),
+      desc: t('tips.card4Desc'),
+      link: t('tips.card4Link'),
+      icon: '💬',
+      color: 'from-emerald-50 to-teal-50 border-emerald-100',
+      iconBg: 'bg-emerald-100 text-emerald-600',
+    },
+    {
+      title: t('tips.card5Title'),
+      desc: t('tips.card5Desc'),
+      link: t('tips.card5Link'),
+      icon: '📅',
+      color: 'from-amber-50 to-yellow-50 border-amber-100',
+      iconBg: 'bg-amber-100 text-amber-600',
+    },
   ];
 
   return (

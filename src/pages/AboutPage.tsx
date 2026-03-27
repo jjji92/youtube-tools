@@ -28,11 +28,35 @@ export default function AboutPage() {
         </section>
 
         <section className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-900 mb-3">
+            {t('about.whyTitle')}
+          </h2>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            {t('about.whyP1')}
+          </p>
+          <p className="text-slate-600 leading-relaxed">
+            {t('about.whyP2')}
+          </p>
+        </section>
+
+        <section className="rounded-lg border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">{t('about.featuresTitle')}</h2>
           <ul className="text-slate-600 space-y-2">
             {(['feature1', 'feature2', 'feature3', 'feature4', 'feature5'] as const).map((key) => (
               <li key={key} className="flex gap-2">
                 <span className="text-red-500 shrink-0">&#10003;</span>
+                <span>{t(`about.${key}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-900 mb-3">{t('about.useCaseTitle')}</h2>
+          <ul className="text-slate-600 space-y-2">
+            {(['useCase1', 'useCase2', 'useCase3', 'useCase4'] as const).map((key) => (
+              <li key={key} className="flex gap-2">
+                <span className="text-slate-400 shrink-0">•</span>
                 <span>{t(`about.${key}`)}</span>
               </li>
             ))}
