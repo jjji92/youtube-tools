@@ -49,10 +49,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ytplaycalc.com/about</loc>
-    <lastmod>2026-03-27</lastmod>
+    <loc>https://ytplaycalc.com/tips/youtube-complete-guide</loc>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ytplaycalc.com/tips/online-course-tips</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ytplaycalc.com/about</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://ytplaycalc.com/guide</loc>
@@ -62,7 +74,7 @@
   </url>
   <url>
     <loc>https://ytplaycalc.com/faq</loc>
-    <lastmod>2026-03-05</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -15,6 +15,8 @@ const PlaylistStudyPage = lazy(() => import('./pages/PlaylistStudyPage'));
 const YoutubeShortcutsPage = lazy(() => import('./pages/YoutubeShortcutsPage'));
 const YoutubeCaptionsPage = lazy(() => import('./pages/YoutubeCaptionsPage'));
 const StudySchedulePage = lazy(() => import('./pages/StudySchedulePage'));
+const YoutubeCompleteGuidePage = lazy(() => import('./pages/YoutubeCompleteGuidePage'));
+const OnlineCoursesTipsPage = lazy(() => import('./pages/OnlineCoursesTipsPage'));
 
 export default function App() {
   const location = useLocation();
@@ -83,6 +85,8 @@ export default function App() {
             <Route path="/tips/youtube-shortcuts" element={<YoutubeShortcutsPage />} />
             <Route path="/tips/youtube-captions" element={<YoutubeCaptionsPage />} />
             <Route path="/tips/study-schedule" element={<StudySchedulePage />} />
+            <Route path="/tips/youtube-complete-guide" element={<YoutubeCompleteGuidePage />} />
+            <Route path="/tips/online-course-tips" element={<OnlineCoursesTipsPage />} />
           </Routes>
         </Suspense>
       </main>

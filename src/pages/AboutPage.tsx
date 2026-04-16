@@ -75,12 +75,51 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <div className="text-center">
+        <section className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-900 mb-3">
+            {t('about.missionTitle')}
+          </h2>
+          <p className="text-slate-600 leading-relaxed mb-3">
+            {t('about.missionP1')}
+          </p>
+          <p className="text-slate-600 leading-relaxed">
+            {t('about.missionP2')}
+          </p>
+        </section>
+
+        <section className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-900 mb-3">
+            {t('about.howTitle')}
+          </h2>
+          <p className="text-slate-600 leading-relaxed mb-3">
+            {t('about.howP1')}
+          </p>
+          <p className="text-slate-600 leading-relaxed">
+            {t('about.howP2')}
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-blue-100 bg-blue-50 p-6">
+          <h2 className="text-xl font-semibold text-slate-900 mb-3">
+            {t('about.tipTitle')}
+          </h2>
+          <p className="text-slate-600 leading-relaxed">
+            {t('about.tipP1')}
+          </p>
+        </section>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/"
-            className="inline-block px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+            className="inline-block px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors text-center"
           >
             {t('about.cta')}
+          </Link>
+          <Link
+            to="/tips"
+            className="inline-block px-6 py-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-center"
+          >
+            {t('about.ctaTips')}
           </Link>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { usePageMeta } from '../utils/usePageMeta';
 import { useLanguage } from '../i18n/LanguageContext';
 
-const FAQ_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8'] as const;
+const FAQ_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] as const;
 
 export default function FaqPage() {
   const { t } = useLanguage();
