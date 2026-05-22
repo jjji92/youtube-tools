@@ -64,6 +64,22 @@ export default function TipsPage() {
       color: 'from-rose-50 to-pink-50 border-rose-100',
       iconBg: 'bg-rose-100 text-rose-600',
     },
+    {
+      title: t('tips.card8Title'),
+      desc: t('tips.card8Desc'),
+      link: t('tips.card8Link'),
+      icon: '📖',
+      color: 'from-teal-50 to-green-50 border-teal-100',
+      iconBg: 'bg-teal-100 text-teal-600',
+    },
+    {
+      title: t('tips.card9Title'),
+      desc: t('tips.card9Desc'),
+      link: t('tips.card9Link'),
+      icon: '🔍',
+      color: 'from-orange-50 to-amber-50 border-orange-100',
+      iconBg: 'bg-orange-100 text-orange-600',
+    },
   ];
 
   return (
