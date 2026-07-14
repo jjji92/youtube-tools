@@ -4,6 +4,7 @@ import { parseMultipleUrls } from '../utils/urlParser';
 import { fetchPlaylistVideoIds, fetchVideoDetails } from '../utils/youtubeApi';
 import { formatDuration } from '../utils/duration';
 import { useLanguage } from '../i18n/LanguageContext';
+import StudyScheduler from '../components/StudyScheduler';
 import type { VideoInfo } from '../types/youtube';
 
 export default function MultiVideoCalculatorPage() {
@@ -289,6 +290,9 @@ export default function MultiVideoCalculatorPage() {
               ))}
             </div>
           </div>
+
+          {/* 학습 완주 스케줄러 */}
+          <StudyScheduler videos={videos} totalSeconds={totalSeconds} selectedSpeed={selectedSpeed} />
         </div>
       )}
 
